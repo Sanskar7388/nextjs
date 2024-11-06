@@ -1,5 +1,10 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const cors = require('cors');
+const mongoose = require("mongoose");
+const app = express();
+const PORT = process.env.PORT || 5002;
+app.use(cors());
+app.use(express.json());
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -8,7 +13,6 @@ const connectDB = async () => {
     mongoose.connect(db_link)
         .then(() => {
             console.log('db_connected');
-            // insertDummyData(); // Insert dummy data after DB connection
         })
         .catch(err => console.log(err));
 };
@@ -33,21 +37,19 @@ const testSchema = new mongoose.Schema({
 
 const Test = mongoose.model('Test', testSchema);
 
-// Initialize Express app
-const app = express();
+// Initialize DB connection
 connectDB();
-
-// Middleware
-app.use(express.json());
 
 // POST endpoint to create a new Test record
 app.post('/api/tests', async (req, res) => {
+    console.log('Incoming data:', req.body); // Check the incoming data
+
     try {
         const newTest = new Test(req.body);
-        console.log(newTest)
         const savedTest = await newTest.save();
         res.status(201).json(savedTest);
     } catch (error) {
+        console.error('Error saving test data:', error); // Log the error for debugging
         res.status(400).json({ message: error.message });
     }
 });
@@ -63,7 +65,6 @@ app.get('/api/tests', async (req, res) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
